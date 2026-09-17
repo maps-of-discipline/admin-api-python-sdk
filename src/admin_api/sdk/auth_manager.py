@@ -2,9 +2,11 @@ from collections.abc import Callable
 from typing import TypeAlias
 
 from admin_api.api.client import SyncApi
-from admin_api.exceptions import PermissionDenied
+from admin_api.api.users.schemas import FullUser, UserPermissions
+from admin_api.exceptions import InvalidTokenException, PermissionDenied
 from admin_api.permissions.verifier import PermissionVerifier
 from admin_api.sdk.auth_context import AuthContext
+from admin_api.sdk.token import decode_token_payload
 
 Middleware: TypeAlias = Callable[[AuthContext], dict | None]
 
@@ -33,26 +35,34 @@ class AdminApiAuth:
         self._middlewares = middlewares
 
     def context_from_token(self, token: str) -> AuthContext[SyncApi]:
+        """Build the auth context: profile from admin_api, permissions from the token claims."""
         if self._root_api is None:
             raise ValueError("Provide api or base_url")
         if not self._service_name:
             raise ValueError("service_name is required")
         user_api = self._root_api.bind(token)
-        user = user_api.send(user_api.users.get_me())
-        permissions = user_api.send(user_api.users.get_permissions(self._service_name))
+        user: FullUser = user_api.send(user_api.users.get_me())
+
+        payload = decode_token_payload(token)
+        if payload.service_name and payload.service_name != self._service_name:
+            raise InvalidTokenException(
+                f"Token was issued for service '{payload.service_name}', expected '{self._service_name}'",
+            )
+        permissions: UserPermissions = {title: [] for title in payload.permissions}
         return AuthContext(api=user_api, user=user, permissions=permissions)
 
-    def _run_middlewares(self, auth_context: AuthContext) -> None:
-        for middleware in self._middlewares:
-            result = middleware(auth_context)
-            if result:
-                middleware_name = middleware.__name__
-                auth_context.middleware_result.update({middleware_name: result})
-
-    def check(self, required: tuple[str, ...], token: str) -> AuthContext:
+    def build_context(self, token: str) -> AuthContext[SyncApi]:
+        """Build the auth context and run the registered middlewares once."""
         auth_context = self.context_from_token(token)
         self._run_middlewares(auth_context)
+        return auth_context
 
+    def check(self, required: tuple[str, ...], token: str) -> AuthContext:
+        auth_context = self.build_context(token)
+        self.check_permissions(auth_context, required)
+        return auth_context
+
+    def check_permissions(self, auth_context: AuthContext, required: tuple[str, ...]) -> None:
         if required and not any(permission in auth_context.permissions for permission in required):
             raise PermissionDenied()
 
@@ -60,4 +70,9 @@ class AdminApiAuth:
             if not verifier.validate(auth_context, required):
                 raise PermissionDenied()
 
-        return auth_context
+    def _run_middlewares(self, auth_context: AuthContext) -> None:
+        for middleware in self._middlewares:
+            result = middleware(auth_context)
+            if result:
+                middleware_name = middleware.__name__
+                auth_context.middleware_result.update({middleware_name: result})
