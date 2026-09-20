@@ -1,5 +1,7 @@
 # Исключения
 
+[← Назад](README.md)
+
 Модуль: `admin_api.exceptions`. Базовый класс: `AuthException`.
 
 | Исключение | Когда возникает | Flask / FastAPI |
@@ -39,4 +41,4 @@ except ApiError as exc:
 
 ---
 
-[Содержание](README.md) · [Авторизация](authorization.md) · [Конфигурация](configuration.md)
+[← Назад](README.md) · [Авторизация](authorization.md) · [Конфигурация](configuration.md)

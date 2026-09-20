@@ -1,5 +1,7 @@
 # API Reference
 
+[← Назад](README.md)
+
 Краткий перечень публичного API. Поведение — в тематических разделах.
 
 ## `admin_api`
@@ -78,4 +80,4 @@ auth.scopes("program.manage")
 
 ---
 
-[Содержание](README.md) · [Конфигурация](configuration.md) · [Исключения](exceptions.md)
+[← Назад](README.md) · [Конфигурация](configuration.md) · [Исключения](exceptions.md)

@@ -1,5 +1,7 @@
 # Flask
 
+[← Назад](README.md)
+
 Интеграция: `admin_api.integrations.flask`. Требуется extra `flask`.
 
 Используется синхронный клиент `SyncApi`.
@@ -121,4 +123,4 @@ def me():
 
 ---
 
-[Содержание](README.md) · [Быстрый старт](quickstart.md) · [Авторизация](authorization.md) · [FastAPI](fastapi.md)
+[← Назад](README.md) · [Быстрый старт](quickstart.md) · [Авторизация](authorization.md) · [FastAPI](fastapi.md)

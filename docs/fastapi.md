@@ -1,5 +1,7 @@
 # FastAPI
 
+[← Назад](README.md)
+
 Интеграция: `admin_api.integrations.fastapi`. Требуется extra `fastapi`.
 
 Используется асинхронный клиент `AsyncApi`.
@@ -146,4 +148,4 @@ async def get_local_user(bundle: RequestAuth = Depends(get_request_auth)):
 
 ---
 
-[Содержание](README.md) · [Быстрый старт](quickstart.md) · [Авторизация](authorization.md) · [Flask](flask.md)
+[← Назад](README.md) · [Быстрый старт](quickstart.md) · [Авторизация](authorization.md) · [Flask](flask.md)

@@ -1,5 +1,7 @@
 # Быстрый старт
 
+[← Назад](README.md)
+
 Минимальные примеры защиты endpoint. Подробности — в [Flask](flask.md) и [FastAPI](fastapi.md).
 
 Передавайте готовый HTTP-клиент с явным `timeout`. Параметр `base_url` у интеграции создаёт клиент с таймаутом 0,3 с — для сетевых вызовов этого недостаточно.
@@ -9,7 +11,7 @@
 ## Flask
 
 ```bash
-pip install "admin-api-python-sdk[flask]"
+pip install "admin-api-python-sdk[flask] @ git+https://github.com/maps-of-discipline/admin-api-python-sdk.git"
 ```
 
 ```python
@@ -37,7 +39,7 @@ def me(auth: AuthContext):
 ## FastAPI
 
 ```bash
-pip install "admin-api-python-sdk[fastapi]"
+pip install "admin-api-python-sdk[fastapi] @ git+https://github.com/maps-of-discipline/admin-api-python-sdk.git"
 ```
 
 ```python
@@ -65,4 +67,4 @@ async def me(auth: AuthContext = Depends(require("user.read"))):
 
 ---
 
-[Содержание](README.md) · [Авторизация](authorization.md) · [Flask](flask.md) · [FastAPI](fastapi.md)
+[← Назад](README.md) · [Авторизация](authorization.md) · [Flask](flask.md) · [FastAPI](fastapi.md)

@@ -1,5 +1,7 @@
 # Авторизация и permissions
 
+[← Назад](README.md)
+
 SDK отделяет **аутентификацию** (кто отправил запрос) от **авторизации** (разрешено ли действие).
 
 ## Последовательность
@@ -197,4 +199,4 @@ auth.assert_permissions(ctx, ("user.read",))
 
 ---
 
-[Содержание](README.md) · [Flask](flask.md) · [FastAPI](fastapi.md) · [Конфигурация](configuration.md)
+[← Назад](README.md) · [Flask](flask.md) · [FastAPI](fastapi.md) · [Конфигурация](configuration.md)

@@ -1,5 +1,7 @@
 # HTTP-клиент
 
+[← Назад](README.md)
+
 Низкоуровневый API Admin API без проверки прав. Интеграции Flask и FastAPI используют его внутри; напрямую он нужен для вызовов вне обработчика, кастомных эндпоинтов и расширения клиента.
 
 ## SyncApi
@@ -160,4 +162,4 @@ groups = api.send(api.mplk.get_groups(search="ИВТ"))
 
 ---
 
-[Содержание](README.md) · [Расширение SDK](extending.md) · [Исключения](exceptions.md)
+[← Назад](README.md) · [Расширение SDK](extending.md) · [Исключения](exceptions.md)

@@ -1,5 +1,7 @@
 # Расширение SDK
 
+[← Назад](README.md)
+
 Способы закрыть пробелы в покрытии Admin API и встроить логику сервиса. Внутреннее устройство пакета здесь не описывается.
 
 ## Добавление собственных операций
@@ -95,4 +97,4 @@ Flask подставляет клиент в аргумент с аннотац�
 
 ---
 
-[Содержание](README.md) · [HTTP-клиент](http-client.md) · [API Reference](api-reference.md)
+[← Назад](README.md) · [HTTP-клиент](http-client.md) · [API Reference](api-reference.md)

@@ -5,6 +5,6 @@
 Документация: [docs/README.md](docs/README.md).
 
 ```bash
-pip install "admin-api-python-sdk[fastapi]"
-pip install "admin-api-python-sdk[flask]"
+pip install "admin-api-python-sdk[fastapi] @ git+https://github.com/maps-of-discipline/admin-api-python-sdk.git"
+pip install "admin-api-python-sdk[flask] @ git+https://github.com/maps-of-discipline/admin-api-python-sdk.git"
 ```

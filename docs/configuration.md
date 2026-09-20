@@ -1,5 +1,7 @@
 # Конфигурация
 
+[← Назад](README.md)
+
 ## HTTP-клиент
 
 `SyncApi` и `AsyncApi`:
@@ -56,4 +58,4 @@
 
 ---
 
-[Содержание](README.md) · [HTTP-клиент](http-client.md) · [API Reference](api-reference.md)
+[← Назад](README.md) · [HTTP-клиент](http-client.md) · [API Reference](api-reference.md)

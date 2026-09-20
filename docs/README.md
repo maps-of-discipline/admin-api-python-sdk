@@ -20,22 +20,30 @@ SDK извлекает JWT из входящего HTTP-запроса, запр
 
 ## Установка
 
-Пакет: `admin-api-python-sdk`. Импорт: `admin_api`.
-
-Ядро (HTTP-клиент без Flask/FastAPI):
+Пакет не публикуется на PyPI. Ставить нужно из Git:
 
 ```bash
-pip install admin-api-python-sdk
+pip install "admin-api-python-sdk @ git+https://github.com/maps-of-discipline/admin-api-python-sdk.git"
 ```
 
-Интеграции подключаются extras:
+Интеграции — extras в той же ссылке:
 
 ```bash
-pip install "admin-api-python-sdk[flask]"
-pip install "admin-api-python-sdk[fastapi]"
+pip install "admin-api-python-sdk[flask] @ git+https://github.com/maps-of-discipline/admin-api-python-sdk.git"
+pip install "admin-api-python-sdk[fastapi] @ git+https://github.com/maps-of-discipline/admin-api-python-sdk.git"
 ```
 
-Зависимости ядра: `httpx`, `pydantic`. Extra `flask` устанавливает Flask, extra `fastapi` — FastAPI.
+В `pyproject.toml`:
+
+```toml
+dependencies = [
+  "admin-api-python-sdk[fastapi] @ git+https://github.com/maps-of-discipline/admin-api-python-sdk.git",
+]
+```
+
+Импорт: `admin_api`. Зависимости ядра: `httpx`, `pydantic`. Extra `flask` устанавливает Flask, extra `fastapi` — FastAPI.
+
+Коммит или тег: `git+https://github.com/maps-of-discipline/admin-api-python-sdk.git@<ref>`.
 
 ## Состав
 
