@@ -5,9 +5,11 @@ import pytest
     "path",
     [
         "admin_api",
+        "admin_api.auth",
+        "admin_api.auth.manager",
+        "admin_api.auth.context",
         "admin_api.integrations.flask",
-        "admin_api.sdk.auth_manager",
-        "admin_api.sdk.auth_context",
+        "admin_api.integrations.fastapi",
         "admin_api.api",
         "admin_api.api.users",
         "admin_api.api.mplk",
