@@ -93,7 +93,7 @@ Flask подставляет клиент в аргумент с аннотац�
 
 ## Каталог прав
 
-`CreateUnexisted` и `FullSync` вызывают `RemoteCatalog`: `list_titles`, `create`, `delete`. Реализацию HTTP к Admin API приложение задаёт само. `MemoryCatalog` подходит для тестов.
+`CreateUnexisted` и `FullSync` вызывают `RemoteCatalog` (или `AsyncRemoteCatalog` с async-методами): `list_titles`, `create`, `delete`. Реализация поверх Admin API — `ApiPermissionCatalog` / `AsyncApiPermissionCatalog`, подробности в [Авторизации](authorization.md#каталог-прав). Свой источник каталога реализует тот же протокол. `MemoryCatalog` подходит для тестов.
 
 ---
 

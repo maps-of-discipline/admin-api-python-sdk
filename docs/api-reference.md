@@ -29,7 +29,8 @@
 | `BearerTokenParser` / `TokenParser` | извлечение JWT |
 | `NoCache` / `TtlCache` / `AuthCache` / `AuthSnapshot` / `token_hash` | кэш снимка |
 | `FailPolicy` | `DENY`, `USE_STALE` |
-| `DoNothing` / `CreateUnexisted` / `FullSync` / `CatalogStrategy` / `RemoteCatalog` / `MemoryCatalog` | каталог прав |
+| `DoNothing` / `CreateUnexisted` / `FullSync` / `CatalogStrategy` / `RemoteCatalog` / `AsyncRemoteCatalog` / `MemoryCatalog` | каталог прав |
+| `ApiPermissionCatalog` / `AsyncApiPermissionCatalog` | каталог прав сервиса поверх Admin API |
 
 `AdminApiAuth.check(required, token, request=None)` загружает контекст и проверяет права. `load(token)` возвращает `(AuthContext, клиент)` без проверки permission.
 

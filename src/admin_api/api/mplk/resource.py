@@ -60,10 +60,26 @@ class Mplk:
             },
         )
 
-    def generic(self, data: dict[str, Any]) -> Operation[Any]:
+    def generic(
+        self,
+        url: str,
+        method: str = "GET",
+        *,
+        headers: dict[str, str] | None = None,
+        query: dict[str, Any] | None = None,
+        body: Any = None,
+    ) -> Operation[Any]:
         return Operation(
             "POST",
             "/api/v1/mplk/generic",
             adapter=TypeAdapter(Any),
-            json=data,
+            json={
+                "body": {
+                    "method": method,
+                    "url": url,
+                    "headers": headers,
+                    "query": query,
+                    "body": body,
+                },
+            },
         )

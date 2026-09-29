@@ -166,7 +166,19 @@ admin = AdminApiFlask(
 | `CreateUnexisted` | создаёт отсутствующие title |
 | `FullSync` | создаёт отсутствующие и удаляет лишние |
 
-`CreateUnexisted` и `FullSync` принимают объект с методами `list_titles()`, `create()`, `delete()` (`RemoteCatalog`). HTTP-ресурса каталога в клиенте нет: реализацию протокола задаёт приложение. `MemoryCatalog` — in-memory вариант для тестов.
+`CreateUnexisted` и `FullSync` принимают объект с методами `list_titles()`, `create()`, `delete()` (`RemoteCatalog` или асинхронный `AsyncRemoteCatalog`). Готовые реализации поверх Admin API — `ApiPermissionCatalog` (для `SyncApi`) и `AsyncApiPermissionCatalog` (для `AsyncApi`). Они работают с правами одного сервиса: сервис ищется по точному `name`, права других сервисов не затрагиваются (фильтр Admin API по `service_name` подстрочный, SDK дофильтровывает по `service_id`). Синхронизация идёт при старте, без пользовательского запроса, поэтому клиенту каталога нужен собственный токен с доступом к `/permission` и `/services`. `MemoryCatalog` — in-memory вариант для тестов.
+
+```python
+from admin_api import AdminApiAuth, SyncApi
+from admin_api.auth import ApiPermissionCatalog, CreateUnexisted
+
+service_api = SyncApi("https://admin.example", token="service-jwt")
+auth = AdminApiAuth(
+    base_url="https://admin.example",
+    service_name="cabinet",
+    catalog=CreateUnexisted(ApiPermissionCatalog(service_api, "cabinet")),
+)
+```
 
 Flask вызывает синхронизацию в `init_app`. FastAPI — при старте приложения.
 

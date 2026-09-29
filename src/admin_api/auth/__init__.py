@@ -1,5 +1,7 @@
+from admin_api.auth.api_catalog import ApiPermissionCatalog, AsyncApiPermissionCatalog
 from admin_api.auth.cache import AuthCache, AuthSnapshot, NoCache, TtlCache, token_hash
 from admin_api.auth.catalog import (
+    AsyncRemoteCatalog,
     CatalogStrategy,
     CreateUnexisted,
     DoNothing,
@@ -24,11 +26,14 @@ from admin_api.auth.token import BearerTokenParser, TokenParser
 
 __all__ = [
     "AdminApiAuth",
+    "ApiPermissionCatalog",
+    "AsyncApiPermissionCatalog",
     "AsyncAdminApiAuth",
     "AsyncMiddleware",
     "AsyncPermissionBase",
     "AsyncPermissionValidator",
     "AsyncPermissionVerifier",
+    "AsyncRemoteCatalog",
     "AuthCache",
     "AuthContext",
     "AuthSnapshot",

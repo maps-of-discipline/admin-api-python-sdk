@@ -4,8 +4,16 @@ from typing import Any, Self, TypeVar, cast
 
 import httpx
 
+from admin_api.api.assignment_rules.resource import AssignmentRules
+from admin_api.api.messengers.resource import Messengers
 from admin_api.api.mplk.resource import Mplk
+from admin_api.api.orders.resource import Orders
+from admin_api.api.permissions.resource import Permissions
 from admin_api.api.request import Operation
+from admin_api.api.service_roles.resource import ServiceRoles
+from admin_api.api.services.resource import Services
+from admin_api.api.units.resource import Units
+from admin_api.api.user_service_roles.resource import UserServiceRoles
 from admin_api.api.users.resource import Users
 from admin_api.exceptions import ApiError, InvalidTokenException, TokenNotProvided
 
@@ -15,6 +23,14 @@ T = TypeVar("T")
 class BaseApi:
     users: Users = Users()
     mplk: Mplk = Mplk()
+    services: Services = Services()
+    service_roles: ServiceRoles = ServiceRoles()
+    permissions: Permissions = Permissions()
+    user_service_roles: UserServiceRoles = UserServiceRoles()
+    orders: Orders = Orders()
+    messengers: Messengers = Messengers()
+    units: Units = Units()
+    assignment_rules: AssignmentRules = AssignmentRules()
 
     def __init__(
         self,

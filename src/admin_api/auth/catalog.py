@@ -1,8 +1,17 @@
 from __future__ import annotations
 
 import abc
+import inspect
 from collections.abc import Mapping
-from typing import Protocol
+from typing import Any, Protocol, TypeVar
+
+T = TypeVar("T")
+
+
+async def _resolve(value: T | Any) -> Any:
+    if inspect.isawaitable(value):
+        return await value
+    return value
 
 
 class RemoteCatalog(Protocol):
@@ -11,6 +20,14 @@ class RemoteCatalog(Protocol):
     def create(self, title: str, verbose_name: str | None = None) -> None: ...
 
     def delete(self, title: str) -> None: ...
+
+
+class AsyncRemoteCatalog(Protocol):
+    async def list_titles(self) -> set[str]: ...
+
+    async def create(self, title: str, verbose_name: str | None = None) -> None: ...
+
+    async def delete(self, title: str) -> None: ...
 
 
 class CatalogStrategy(abc.ABC):
@@ -42,8 +59,8 @@ class MemoryCatalog:
 
 
 class CreateUnexisted(CatalogStrategy):
-    def __init__(self, catalog: RemoteCatalog) -> None:
-        self._catalog = catalog
+    def __init__(self, catalog: RemoteCatalog | AsyncRemoteCatalog) -> None:
+        self._catalog: Any = catalog
 
     def apply(self, local: Mapping[str, str]) -> None:
         remote = self._catalog.list_titles()
@@ -51,10 +68,16 @@ class CreateUnexisted(CatalogStrategy):
             if title not in remote:
                 self._catalog.create(title, verbose_name)
 
+    async def aapply(self, local: Mapping[str, str]) -> None:
+        remote = await _resolve(self._catalog.list_titles())
+        for title, verbose_name in local.items():
+            if title not in remote:
+                await _resolve(self._catalog.create(title, verbose_name))
+
 
 class FullSync(CatalogStrategy):
-    def __init__(self, catalog: RemoteCatalog) -> None:
-        self._catalog = catalog
+    def __init__(self, catalog: RemoteCatalog | AsyncRemoteCatalog) -> None:
+        self._catalog: Any = catalog
 
     def apply(self, local: Mapping[str, str]) -> None:
         remote = self._catalog.list_titles()
@@ -63,3 +86,11 @@ class FullSync(CatalogStrategy):
                 self._catalog.create(title, verbose_name)
         for title in remote - set(local):
             self._catalog.delete(title)
+
+    async def aapply(self, local: Mapping[str, str]) -> None:
+        remote = await _resolve(self._catalog.list_titles())
+        for title, verbose_name in local.items():
+            if title not in remote:
+                await _resolve(self._catalog.create(title, verbose_name))
+        for title in remote - set(local):
+            await _resolve(self._catalog.delete(title))
