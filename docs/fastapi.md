@@ -71,9 +71,9 @@ async def me(auth: AuthContext = Depends(require("user.read"))):
     return {"id": str(auth.user.id)}
 ```
 
-`require(*permissions)` возвращает async-callable. Его передают в `Depends`, а не вызывают как декоратор.
+`require(*args)` возвращает async-callable. Каждый аргумент — строка, коллекция строк или `None`. Отдельные аргументы соединяются по И, элементы одной коллекции — по ИЛИ. Например, `require("user.read", {"user.update", "user.delete"})`. Функцию передают в `Depends`, а не вызывают как декоратор.
 
-Несколько строк — логическое ИЛИ. Пустой `require()` требует только валидный токен и успешную загрузку контекста.
+Пустой `require()` требует только валидный токен и успешную загрузку контекста.
 
 Scoped-валидаторы: `AsyncPermissionBase` / `AsyncPermissionValidator` и `admin.add_permission(...)`. См. [авторизация](authorization.md#scoped-permissions).
 

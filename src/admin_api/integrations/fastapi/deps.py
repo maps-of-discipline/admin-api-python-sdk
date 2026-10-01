@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Collection
 from dataclasses import dataclass
 
 from fastapi import Depends, Request
@@ -40,16 +41,17 @@ async def get_api(bundle: RequestAuth = Depends(get_request_auth)) -> AsyncApi:
     return bundle.api
 
 
-def require(*permissions: str):
+def require(*required: Collection[str] | str | None):
     async def dependency(
         request: Request,
         bundle: RequestAuth = Depends(get_request_auth),
     ) -> AuthContext:
-        await _integration(request).assert_permissions(
-            bundle.context,
-            permissions,
-            request=request,
-        )
+        for group in required:
+            await _integration(request).assert_permissions(
+                bundle.context,
+                group,
+                request=request,
+            )
         return bundle.context
 
     return dependency

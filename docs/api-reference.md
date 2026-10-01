@@ -31,7 +31,7 @@
 | `FailPolicy` | `DENY`, `USE_STALE` |
 | `DoNothing` / `CreateUnexisted` / `FullSync` / `CatalogStrategy` / `RemoteCatalog` / `MemoryCatalog` | каталог прав |
 
-`AdminApiAuth.check(required, token, request=None)` загружает контекст и проверяет права. `load(token)` возвращает `(AuthContext, клиент)` без проверки permission.
+`AdminApiAuth.check(required, token, request=None)` загружает контекст и проверяет права. `required` принимает `Collection[str] | str | None`; коллекция проверяется по ИЛИ. В `require` отдельные аргументы соединяются по И. `load(token)` возвращает `(AuthContext, клиент)` без проверки permission.
 
 У `AsyncAdminApiAuth` нет `add_permission_verifier`.
 

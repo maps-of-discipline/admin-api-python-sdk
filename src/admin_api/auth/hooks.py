@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import abc
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Collection
 from typing import TypeAlias
 
 from admin_api.auth.context import AuthContext
@@ -57,16 +57,18 @@ class PermissionVerifier:
     def validate(
         self,
         auth: AuthContext,
-        required: tuple[str, ...],
+        required: Collection[str] | str,
         request: object | None = None,
     ) -> bool:
+        if isinstance(required, str):
+            required = (required,)
         for title in required:
-            permission = self._permissions.get(title)
-            if permission is None:
+            if title not in auth.permissions:
                 continue
-            if not permission.check(auth, request=request):
-                return False
-        return True
+            permission = self._permissions.get(title)
+            if permission is None or permission.check(auth, request=request):
+                return True
+        return False
 
 
 class AsyncPermissionVerifier:
@@ -84,16 +86,18 @@ class AsyncPermissionVerifier:
     async def validate(
         self,
         auth: AuthContext,
-        required: tuple[str, ...],
+        required: Collection[str] | str,
         request: object | None = None,
     ) -> bool:
+        if isinstance(required, str):
+            required = (required,)
         for title in required:
-            permission = self._permissions.get(title)
-            if permission is None:
+            if title not in auth.permissions:
                 continue
-            if not await permission.check(auth, request=request):
-                return False
-        return True
+            permission = self._permissions.get(title)
+            if permission is None or await permission.check(auth, request=request):
+                return True
+        return False
 
 
 def apply_middleware_result(context: AuthContext, middleware: object, result: dict | None) -> None:

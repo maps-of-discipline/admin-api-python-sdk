@@ -26,6 +26,11 @@ class _UnitScoped(PermissionValidator):
         return any(scope.unit_id == UNIT_ID for scope in auth.scopes("user.update") if scope.type == "unit")
 
 
+class _Reject(PermissionValidator):
+    def validate(self, auth: AuthContext, request: object | None = None) -> bool:
+        return False
+
+
 class UserRead(PermissionBase):
     title = "user.read"
     validator = _AllowAll
@@ -34,6 +39,16 @@ class UserRead(PermissionBase):
 class UserUpdate(PermissionBase):
     title = "user.update"
     validator = _UnitScoped
+
+
+class RejectedUserUpdate(PermissionBase):
+    title = "user.update"
+    validator = _Reject
+
+
+class MissingPermission(PermissionBase):
+    title = "missing.perm"
+    validator = _AllowAll
 
 
 def test_sync_load_and_require():
@@ -56,6 +71,27 @@ def test_custom_validator_and_middleware():
         auth.set_middlewares([stash_user])
         ctx = auth.check(("user.update",), "tok")
         assert ctx.extras["stash_user"]["id"] == str(USER_ID)
+
+
+def test_permission_alternatives_and_argument_forms():
+    with SyncApi("http://admin-api.local", transport=httpx.MockTransport(admin_http_handler)) as api:
+        auth = AdminApiAuth(api=api, service_name="cabinet")
+        auth.add_permission(RejectedUserUpdate)
+        auth.add_permission(UserRead)
+        auth.add_permission(MissingPermission)
+        assert auth.check("user.read", "tok").user.id == USER_ID
+        assert auth.check(None, "tok").user.id == USER_ID
+        assert auth.check(("user.update", "user.read"), "tok").user.id == USER_ID
+        assert auth.check(["user.update", "user.read"], "tok").user.id == USER_ID
+        assert auth.check({"user.update", "user.read"}, "tok").user.id == USER_ID
+        with pytest.raises(PermissionDenied):
+            auth.check("user.update", "tok")
+        with pytest.raises(PermissionDenied):
+            auth.check(("user.update", "missing.perm"), "tok")
+        with pytest.raises(PermissionDenied):
+            auth.check("missing.perm", "tok")
+        with pytest.raises(PermissionDenied):
+            auth.check([], "tok")
 
 
 def test_ttl_cache_skips_second_fetch():
@@ -124,9 +160,19 @@ class _AsyncAllow(AsyncPermissionValidator):
         return True
 
 
+class _AsyncReject(AsyncPermissionValidator):
+    async def validate(self, auth: AuthContext, request: object | None = None) -> bool:
+        return False
+
+
 class AsyncUserRead(AsyncPermissionBase):
     title = "user.read"
     validator = _AsyncAllow
+
+
+class AsyncRejectedUserUpdate(AsyncPermissionBase):
+    title = "user.update"
+    validator = _AsyncReject
 
 
 def test_async_load():
@@ -141,5 +187,24 @@ def test_async_load():
             await auth.assert_permissions(ctx, ("user.read",))
             assert ctx.user.id == USER_ID
             assert bound._token == "tok"
+
+    asyncio.run(main())
+
+
+def test_async_permission_alternatives_and_argument_forms():
+    async def main() -> None:
+        async with AsyncApi("http://admin-api.local", transport=httpx.MockTransport(admin_http_handler)) as api:
+            auth = AsyncAdminApiAuth(api=api, service_name="cabinet")
+            auth.add_permission(AsyncRejectedUserUpdate)
+            auth.add_permission(AsyncUserRead)
+            assert (await auth.check("user.read", "tok")).user.id == USER_ID
+            assert (await auth.check(None, "tok")).user.id == USER_ID
+            assert (await auth.check(("user.update", "user.read"), "tok")).user.id == USER_ID
+            assert (await auth.check(["user.update", "user.read"], "tok")).user.id == USER_ID
+            assert (await auth.check({"user.update", "user.read"}, "tok")).user.id == USER_ID
+            with pytest.raises(PermissionDenied):
+                await auth.check("user.update", "tok")
+            with pytest.raises(PermissionDenied):
+                await auth.check([], "tok")
 
     asyncio.run(main())

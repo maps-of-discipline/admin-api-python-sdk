@@ -55,9 +55,65 @@ def test_flask_missing_token_and_forbidden():
     def forbidden(auth: AuthContext):
         return jsonify({"id": str(auth.user.id)})
 
+    @app.get("/alternatives")
+    @require(("missing.perm", "user.read"))
+    def alternatives(auth: AuthContext):
+        return jsonify({"id": str(auth.user.id)})
+
+    @app.get("/authenticated")
+    @require(None)
+    def authenticated(auth: AuthContext):
+        return jsonify({"id": str(auth.user.id)})
+
+    @app.get("/and-allowed")
+    @require("user.read", "user.update")
+    def and_allowed(auth: AuthContext):
+        return jsonify({"id": str(auth.user.id)})
+
+    @app.get("/and-denied")
+    @require("user.read", "missing.perm")
+    def and_denied(auth: AuthContext):
+        return jsonify({"id": str(auth.user.id)})
+
+    @app.get("/list-or")
+    @require(["missing.perm", "user.read"])
+    def list_or(auth: AuthContext):
+        return jsonify({"id": str(auth.user.id)})
+
+    @app.get("/set-or")
+    @require({"missing.perm", "user.read"})
+    def set_or(auth: AuthContext):
+        return jsonify({"id": str(auth.user.id)})
+
+    @app.get("/mixed")
+    @require("user.update", ["missing.perm", "user.read"])
+    def mixed(auth: AuthContext):
+        return jsonify({"id": str(auth.user.id)})
+
+    @app.get("/empty-or")
+    @require([])
+    def empty_or(auth: AuthContext):
+        return jsonify({"id": str(auth.user.id)})
+
     with app.test_client() as client:
         missing = client.get("/me")
         denied = client.get("/forbidden", headers={"Authorization": "Bearer tok"})
+        alternatives = client.get("/alternatives", headers={"Authorization": "Bearer tok"})
+        authenticated = client.get("/authenticated", headers={"Authorization": "Bearer tok"})
+        and_allowed = client.get("/and-allowed", headers={"Authorization": "Bearer tok"})
+        and_denied = client.get("/and-denied", headers={"Authorization": "Bearer tok"})
+        list_or = client.get("/list-or", headers={"Authorization": "Bearer tok"})
+        set_or = client.get("/set-or", headers={"Authorization": "Bearer tok"})
+        mixed = client.get("/mixed", headers={"Authorization": "Bearer tok"})
+        empty_or = client.get("/empty-or", headers={"Authorization": "Bearer tok"})
 
     assert missing.status_code == 401
     assert denied.status_code == 403
+    assert alternatives.status_code == 200
+    assert authenticated.status_code == 200
+    assert and_allowed.status_code == 200
+    assert and_denied.status_code == 403
+    assert list_or.status_code == 200
+    assert set_or.status_code == 200
+    assert mixed.status_code == 200
+    assert empty_or.status_code == 403

@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Collection, Mapping
 
 import httpx
 
 from admin_api.api.client import AsyncApi, SyncApi
 from admin_api.auth.cache import AuthCache, AuthSnapshot, NoCache, token_hash
 from admin_api.auth.catalog import CatalogStrategy, DoNothing
-from admin_api.auth.check import assert_has_permission
 from admin_api.auth.context import AuthContext
 from admin_api.auth.fail import FailPolicy
 from admin_api.auth.hooks import (
@@ -114,7 +113,7 @@ class AdminApiAuth(BaseAdminApiAuth):
         self._run_middlewares(context)
         return context, self._bind(token)
 
-    def check(self, required: tuple[str, ...], token: str, request: object | None = None) -> AuthContext:
+    def check(self, required: Collection[str] | str | None, token: str, request: object | None = None) -> AuthContext:
         context, _api = self.load(token)
         self.assert_permissions(context, required, request=request)
         return context
@@ -122,10 +121,11 @@ class AdminApiAuth(BaseAdminApiAuth):
     def assert_permissions(
         self,
         context: AuthContext,
-        required: tuple[str, ...],
+        required: Collection[str] | str | None,
         request: object | None = None,
     ) -> None:
-        assert_has_permission(context, required)
+        if required is None:
+            return
         if not self._verifier.validate(context, required, request=request):
             raise PermissionDenied()
 
@@ -205,7 +205,7 @@ class AsyncAdminApiAuth(BaseAdminApiAuth):
 
     async def check(
         self,
-        required: tuple[str, ...],
+        required: Collection[str] | str | None,
         token: str,
         request: object | None = None,
     ) -> AuthContext:
@@ -216,10 +216,11 @@ class AsyncAdminApiAuth(BaseAdminApiAuth):
     async def assert_permissions(
         self,
         context: AuthContext,
-        required: tuple[str, ...],
+        required: Collection[str] | str | None,
         request: object | None = None,
     ) -> None:
-        assert_has_permission(context, required)
+        if required is None:
+            return
         if not await self._verifier.validate(context, required, request=request):
             raise PermissionDenied()
 

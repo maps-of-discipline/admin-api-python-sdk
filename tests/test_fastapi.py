@@ -33,6 +33,38 @@ def _build_app(api: AsyncApi, *, cache=None) -> FastAPI:
     async def forbidden(auth: AuthContext = Depends(require("missing.perm"))):
         return {"id": str(auth.user.id)}
 
+    @app.get("/alternatives")
+    async def alternatives(auth: AuthContext = Depends(require(("missing.perm", "user.read")))):
+        return {"id": str(auth.user.id)}
+
+    @app.get("/authenticated")
+    async def authenticated(auth: AuthContext = Depends(require(None))):
+        return {"id": str(auth.user.id)}
+
+    @app.get("/and-allowed")
+    async def and_allowed(auth: AuthContext = Depends(require("user.read", "user.update"))):
+        return {"id": str(auth.user.id)}
+
+    @app.get("/and-denied")
+    async def and_denied(auth: AuthContext = Depends(require("user.read", "missing.perm"))):
+        return {"id": str(auth.user.id)}
+
+    @app.get("/list-or")
+    async def list_or(auth: AuthContext = Depends(require(["missing.perm", "user.read"]))):
+        return {"id": str(auth.user.id)}
+
+    @app.get("/set-or")
+    async def set_or(auth: AuthContext = Depends(require({"missing.perm", "user.read"}))):
+        return {"id": str(auth.user.id)}
+
+    @app.get("/mixed")
+    async def mixed(auth: AuthContext = Depends(require("user.update", ["missing.perm", "user.read"]))):
+        return {"id": str(auth.user.id)}
+
+    @app.get("/empty-or")
+    async def empty_or(auth: AuthContext = Depends(require([]))):
+        return {"id": str(auth.user.id)}
+
     return app
 
 
@@ -59,6 +91,27 @@ def test_fastapi_permission_denied():
     with TestClient(_build_app(api)) as client:
         response = client.get("/forbidden", headers={"Authorization": "Bearer tok"})
     assert response.status_code == 403
+
+
+def test_fastapi_permission_argument_forms():
+    api = AsyncApi("http://admin-api.local", transport=httpx.MockTransport(admin_http_handler))
+    with TestClient(_build_app(api)) as client:
+        alternatives = client.get("/alternatives", headers={"Authorization": "Bearer tok"})
+        authenticated = client.get("/authenticated", headers={"Authorization": "Bearer tok"})
+        and_allowed = client.get("/and-allowed", headers={"Authorization": "Bearer tok"})
+        and_denied = client.get("/and-denied", headers={"Authorization": "Bearer tok"})
+        list_or = client.get("/list-or", headers={"Authorization": "Bearer tok"})
+        set_or = client.get("/set-or", headers={"Authorization": "Bearer tok"})
+        mixed = client.get("/mixed", headers={"Authorization": "Bearer tok"})
+        empty_or = client.get("/empty-or", headers={"Authorization": "Bearer tok"})
+    assert alternatives.status_code == 200
+    assert authenticated.status_code == 200
+    assert and_allowed.status_code == 200
+    assert and_denied.status_code == 403
+    assert list_or.status_code == 200
+    assert set_or.status_code == 200
+    assert mixed.status_code == 200
+    assert empty_or.status_code == 403
 
 
 def test_fastapi_cache_reuses_snapshot_between_requests():

@@ -77,16 +77,21 @@ auth.scopes("program.manage")         # list[Scope], иначе []
 `require("user.read")` (Flask-декоратор или FastAPI-dependency):
 
 1. Загружает пользователя и permissions, если это ещё не сделано для запроса.
-2. Проверяет, что **хотя бы одна** из переданных строк есть в `permissions`.
-3. Если на это право зарегистрирован валидатор — вызывает его.
+2. Для каждого отдельного аргумента проверяет право или группу прав: право должно быть в `permissions` и, если для него зарегистрирован валидатор, пройти его проверку.
+3. Все отдельные аргументы обязательны (**И**). Внутри коллекции достаточно одного прошедшего права (**ИЛИ**).
 4. При успехе отдаёт `AuthContext` в обработчик.
 
 ```python
 require("user.read")
-require("user.read", "user.update")  # достаточно любого из двух
+require("user.read", "user.update")  # оба права обязательны
+require(("user.read", "user.update"))  # достаточно любого из двух
+require(["user.read", "user.update"])  # список: ИЛИ
+require({"user.read", "user.update"})  # множество: ИЛИ
+require("user.read", ("user.update", "user.delete"))  # user.read И (user.update ИЛИ user.delete)
+require(None)  # только аутентификация
 ```
 
-Пустой `require()` проверяет только наличие токена и успешную загрузку контекста.
+Аргументы принимают `str | Collection[str] | None`. Пустой `require()` также проверяет только наличие токена и успешную загрузку контекста. Пустая коллекция не содержит ни одного подходящего права и приводит к 403.
 
 Незарегистрированное право проверяется только по наличию ключа в ответе Admin API.
 
@@ -183,6 +188,8 @@ auth = AdminApiAuth(api=api, service_name="cabinet")
 ctx, bound = auth.load("user-jwt")
 auth.assert_permissions(ctx, ("user.read",))
 ```
+
+`check(required, token)` и `assert_permissions(context, required)` также принимают строку, коллекцию строк или `None`. Коллекция в этих методах проверяется по ИЛИ. При `None` проверка прав пропускается; `check` всё равно загружает контекст по токену.
 
 Асинхронный вариант: `AsyncApi` и `AsyncAdminApiAuth`, методы `load` / `check` / `assert_permissions` — корутины.
 
