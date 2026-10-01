@@ -1,11 +1,10 @@
 from __future__ import annotations
 
+import copy
 from collections.abc import Collection, Mapping
 
-import httpx
-
 from admin_api.api.client import AsyncApi, SyncApi
-from admin_api.auth.cache import AuthCache, AuthSnapshot, NoCache, token_hash
+from admin_api.auth.cache import AuthCache, AuthSnapshot, NoCache
 from admin_api.auth.catalog import CatalogStrategy, DoNothing
 from admin_api.auth.context import AuthContext
 from admin_api.auth.fail import FailPolicy
@@ -18,7 +17,8 @@ from admin_api.auth.hooks import (
     PermissionVerifier,
     apply_middleware_result,
 )
-from admin_api.exceptions import ApiError, InvalidTokenException, PermissionDenied
+from admin_api.auth.snapshot import SnapshotStore
+from admin_api.exceptions import PermissionDenied
 
 
 class BaseAdminApiAuth:
@@ -33,8 +33,7 @@ class BaseAdminApiAuth:
     ) -> None:
         self._timeout_ms = timeout_ms
         self._service_name = service_name
-        self._cache = cache or NoCache()
-        self._fail_policy = fail_policy
+        self._snapshots = SnapshotStore(cache or NoCache(), fail_policy)
         self._catalog = catalog or DoNothing()
 
     def _require_service_name(self) -> str:
@@ -42,24 +41,8 @@ class BaseAdminApiAuth:
             raise ValueError("service_name is required")
         return self._service_name
 
-    def _read_cache(self, token: str) -> AuthSnapshot | None:
-        return self._cache.get(token_hash(token))
-
-    def _store_cache(self, token: str, snapshot: AuthSnapshot) -> None:
-        self._cache.set(token_hash(token), snapshot)
-
-    def _recover_snapshot(self, token: str, error: Exception) -> AuthSnapshot:
-        if isinstance(error, InvalidTokenException):
-            self._cache.drop(token_hash(token))
-            raise error
-        if isinstance(error, ApiError | httpx.HTTPError) and self._fail_policy is FailPolicy.USE_STALE:
-            stale = self._cache.get_stale(token_hash(token))
-            if stale is not None:
-                return stale
-        raise error
-
     def _context_from_snapshot(self, snapshot: AuthSnapshot) -> AuthContext:
-        return AuthContext(user=snapshot.user, permissions=snapshot.permissions)
+        return AuthContext(user=copy.deepcopy(snapshot.user), permissions=copy.deepcopy(snapshot.permissions))
 
 
 class AdminApiAuth(BaseAdminApiAuth):
@@ -83,6 +66,9 @@ class AdminApiAuth(BaseAdminApiAuth):
         )
         if api is None and base_url is not None:
             api = SyncApi(base_url, timeout=timeout_ms / 1000)
+            self._owns_root_api = True
+        else:
+            self._owns_root_api = False
         self._root_api = api
         self._middlewares: list[Middleware] = []
         self._verifier = PermissionVerifier()
@@ -96,6 +82,10 @@ class AdminApiAuth(BaseAdminApiAuth):
 
     def set_middlewares(self, middlewares: list[Middleware]) -> None:
         self._middlewares = middlewares
+
+    def close(self) -> None:
+        if self._owns_root_api and self._root_api is not None:
+            self._root_api.close()
 
     def local_catalog(self) -> Mapping[str, str]:
         return self._verifier.catalog()
@@ -135,14 +125,14 @@ class AdminApiAuth(BaseAdminApiAuth):
         return self._root_api.bind(token)
 
     def _load_snapshot(self, token: str) -> AuthSnapshot:
-        cached = self._read_cache(token)
+        cached = self._snapshots.get(token)
         if cached is not None:
             return cached
         try:
             snapshot = self._fetch_snapshot(token)
         except Exception as error:
-            return self._recover_snapshot(token, error)
-        self._store_cache(token, snapshot)
+            return self._snapshots.recover(token, error)
+        self._snapshots.set(token, snapshot)
         return snapshot
 
     def _fetch_snapshot(self, token: str) -> AuthSnapshot:
@@ -177,6 +167,9 @@ class AsyncAdminApiAuth(BaseAdminApiAuth):
         )
         if api is None and base_url is not None:
             api = AsyncApi(base_url, timeout=timeout_ms / 1000)
+            self._owns_root_api = True
+        else:
+            self._owns_root_api = False
         self._root_api = api
         self._middlewares: list[AsyncMiddleware] = []
         self._verifier = AsyncPermissionVerifier()
@@ -186,6 +179,10 @@ class AsyncAdminApiAuth(BaseAdminApiAuth):
 
     def set_middlewares(self, middlewares: list[AsyncMiddleware]) -> None:
         self._middlewares = middlewares
+
+    async def aclose(self) -> None:
+        if self._owns_root_api and self._root_api is not None:
+            await self._root_api.aclose()
 
     def local_catalog(self) -> Mapping[str, str]:
         return self._verifier.catalog()
@@ -230,14 +227,14 @@ class AsyncAdminApiAuth(BaseAdminApiAuth):
         return self._root_api.bind(token)
 
     async def _load_snapshot(self, token: str) -> AuthSnapshot:
-        cached = self._read_cache(token)
+        cached = self._snapshots.get(token)
         if cached is not None:
             return cached
         try:
             snapshot = await self._fetch_snapshot(token)
         except Exception as error:
-            return self._recover_snapshot(token, error)
-        self._store_cache(token, snapshot)
+            return self._snapshots.recover(token, error)
+        self._snapshots.set(token, snapshot)
         return snapshot
 
     async def _fetch_snapshot(self, token: str) -> AuthSnapshot:

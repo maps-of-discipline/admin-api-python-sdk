@@ -93,6 +93,16 @@ def test_fastapi_permission_denied():
     assert response.status_code == 403
 
 
+def test_fastapi_closes_owned_client_after_lifespan():
+    integration = AdminApiFastAPI(base_url="http://admin-api.local", service_name="cabinet")
+    app = FastAPI()
+    integration.init_app(app)
+    with TestClient(app):
+        assert integration._root_api is not None
+        assert not integration._root_api._http.is_closed
+    assert integration._root_api._http.is_closed
+
+
 def test_fastapi_permission_argument_forms():
     api = AsyncApi("http://admin-api.local", transport=httpx.MockTransport(admin_http_handler))
     with TestClient(_build_app(api)) as client:

@@ -39,6 +39,15 @@ def test_flask_require_injects_context_and_api():
     assert payload["bound"] == "tok"
 
 
+def test_flask_owned_client_can_be_closed():
+    integration = AdminApiFlask(base_url="http://admin-api.local", service_name="cabinet")
+    app = Flask(__name__)
+    integration.init_app(app)
+    assert integration._root_api is not None
+    integration.close()
+    assert integration._root_api._http.is_closed
+
+
 def test_flask_missing_token_and_forbidden():
     api = SyncApi("http://admin-api.local", transport=httpx.MockTransport(admin_http_handler))
     integration = AdminApiFlask(api=api, service_name="cabinet")

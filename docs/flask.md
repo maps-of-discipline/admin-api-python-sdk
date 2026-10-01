@@ -33,6 +33,8 @@ admin.init_app(app)
 
 `AdminApiFlask` наследует `AdminApiAuth`: доступны `add_permission`, `set_middlewares`, `load`, `check` и остальные методы менеджера.
 
+Если клиент создан через `base_url=`, при остановке приложения вызовите `admin.close()`. При `api=` закрывайте переданный клиент самостоятельно.
+
 ## Получение токена
 
 По умолчанию `BearerTokenParser`: заголовок `Authorization`, схема `Bearer`.

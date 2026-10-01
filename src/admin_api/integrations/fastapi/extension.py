@@ -50,9 +50,12 @@ class AdminApiFastAPI(AsyncAdminApiAuth):
 
         @asynccontextmanager
         async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-            await self.sync_catalog()
-            async with previous(app):
-                yield
+            try:
+                await self.sync_catalog()
+                async with previous(app):
+                    yield
+            finally:
+                await self.aclose()
 
         app.router.lifespan_context = lifespan
 

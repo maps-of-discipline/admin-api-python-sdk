@@ -2,11 +2,19 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from typing import Any, Generic, TypeVar
+from urllib.parse import quote
 
 import httpx
 from pydantic import TypeAdapter
 
 T = TypeVar("T")
+
+
+def _encode_path_segment(value: Any) -> str:
+    segment = quote(str(value), safe="")
+    if segment in (".", ".."):
+        return segment.replace(".", "%2E")
+    return segment
 
 
 class Operation(Generic[T]):
@@ -32,7 +40,10 @@ class Operation(Generic[T]):
         self._path_params = path_params
 
     def build(self) -> httpx.Request:
-        url = self._url.format(**self._path_params) if self._path_params else self._url
+        url = self._url
+        if self._path_params:
+            encoded = {key: _encode_path_segment(value) for key, value in self._path_params.items()}
+            url = url.format(**encoded)
         params = None
         if self._params:
             params = {key: value for key, value in self._params.items() if value is not None}

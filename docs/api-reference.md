@@ -20,8 +20,8 @@
 | Имя | Описание |
 |---|---|
 | `AuthContext` | `user`, `permissions`, `extras`; методы `has()`, `scopes()` |
-| `AdminApiAuth` | `load`, `check`, `assert_permissions`, `add_permission`, `set_middlewares`, `sync_catalog` |
-| `AsyncAdminApiAuth` | те же операции в async-варианте |
+| `AdminApiAuth` | `load`, `check`, `assert_permissions`, `add_permission`, `set_middlewares`, `sync_catalog`, `close` |
+| `AsyncAdminApiAuth` | те же операции в async-варианте, закрытие клиента через `aclose` |
 | `PermissionBase` / `PermissionValidator` | scoped-проверка (sync) |
 | `AsyncPermissionBase` / `AsyncPermissionValidator` | scoped-проверка (async) |
 | `PermissionVerifier` / `AsyncPermissionVerifier` | реестр прав; sync-менеджер также принимает verifier через `add_permission_verifier` |
