@@ -7,6 +7,12 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, model_validator
 
+from admin_api.api.scopes import Scope
+from admin_api.api.scopes import UnitScopeResponse as UnitScopeResponse
+from admin_api.api.scopes import UnitTypeScopeResponse as UnitTypeScopeResponse
+from admin_api.api.units.schemas import ShortUnit
+from admin_api.api.units.schemas import UnitType as UnitType
+
 
 class MfaMethod(StrEnum):
     none = "none"
@@ -48,17 +54,6 @@ class UserEmail(BaseModel):
     email: str
     is_primary: bool
     verified_at: datetime | None
-
-
-class UnitType(BaseModel):
-    id: UUID
-    title: str
-
-
-class ShortUnit(BaseModel):
-    id: UUID
-    title: str
-    type: UnitType
 
 
 class Position(BaseModel):
@@ -175,17 +170,4 @@ class FullOrganizationalUser(OrganizationalUser):
 FullUser = Annotated[FullNaturalUser | FullOrganizationalUser, Field(discriminator="kind")]
 
 
-class UnitScopeResponse(BaseModel):
-    id: UUID
-    type: Literal["unit"] = "unit"
-    unit_id: UUID
-
-
-class UnitTypeScopeResponse(BaseModel):
-    id: UUID
-    type: Literal["unit_type"] = "unit_type"
-    unit_type_id: UUID
-
-
-Scope = Annotated[UnitScopeResponse | UnitTypeScopeResponse, Field(discriminator="type")]
 UserPermissions = dict[str, list[Scope]]

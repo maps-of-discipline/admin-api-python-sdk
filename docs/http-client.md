@@ -22,7 +22,7 @@ with SyncApi("https://admin.example", token="jwt", timeout=5.0) as api:
 | `timeout` | `float` | `5.0` | таймаут HTTP в секундах |
 | `transport` | транспорт httpx или `None` | `None` | подмена транспорта (тесты, свой HTTP) |
 
-Ресурсы: `api.users`, `api.mplk`, `api.services`.
+Ресурсы: `api.users`, `api.mplk`, `api.services`, `api.service_roles`, `api.units`, `api.unit_types`, `api.user_service_roles`, `api.permissions`.
 
 Методы: `send(operation)`, `bind(token)`, `close()`. Поддерживается context manager (`with`).
 
@@ -168,6 +168,52 @@ created = api.send(api.services.create(ServiceCreate(name="cabinet")))
 ```
 
 Схемы запроса проверяют и нормализуют иконку и цвет так же, как Admin API. Для очистки `verbose_name` при обновлении передайте `None`.
+
+### Service roles
+
+`api.service_roles` использует путь `/api/v1/service-roles` и схемы из `admin_api.api.service_roles`.
+
+| Метод | HTTP | Результат |
+|---|---|---|
+| `get_by_filters(filters=None, page=1, size=10, sort_by=None, sort_order="DESC")` | `POST /filters` | `ServiceRolesPaginatedResponse` |
+| `get_by_id(service_role_id)` | `GET /{id}` | `ServiceRolesResponse` |
+| `create(role)` | `POST /` | `ServiceRolesResponse` |
+| `update(role)` | `PATCH /` | `None` |
+| `delete(service_role_id)` | `DELETE /{id}` | `"success"` |
+| `get_permissions(service_role_id)` | `GET /{id}/permissions` | `ServiceRolesPermissionsResponse` |
+| `assign_permission(assignment)` | `POST /assign-permission` | `"success"` |
+| `revoke_permission(assignment)` | `POST /revoke-permission` | `"success"` |
+
+`ServiceRolesCreate` и `ServiceRolesUpdate` допускают `service_id=None` по схеме Admin API, но серверу для этих операций нужен существующий сервис. `update` возвращает JSON `null`.
+
+### Units и unit types
+
+`api.units.get_all(flat=False, max_depth=None, root_id=None, search=None, type_ids=None)` вызывает `GET /api/v1/units` и возвращает список `UnitTreeResponse` или `UnitResponse`. Поиск и `type_ids` доступны только при `flat=True`. `api.unit_types.get_all()` вызывает `GET /api/v1/unit-types` и возвращает `list[UnitType]`. Схемы доступны в `admin_api.api.units` и `admin_api.api.unit_types`.
+
+### User service roles
+
+`api.user_service_roles` использует путь `/api/v1/user_service_roles`.
+
+| Метод | HTTP | Результат |
+|---|---|---|
+| `get_by_id(assignment_id)` | `GET /{id}` | `UserServiceRolesResponse` |
+| `create(assignment)` | `POST /` | `UserServiceRolesResponse` |
+| `update(assignment)` | `PATCH /` | `UserServiceRolesResponse` |
+| `delete(assignment_id)` | `DELETE /{id}` | `"success"` |
+
+В `UserServiceRolesCreate` и `UserServiceRolesUpdate` передавайте scope через `UnitScopeItem` или `UnitTypeScopeItem`. В ответе элементы scope имеют собственный `id`. При `update` значение `scope=None` сохраняет существующий scope, а пустой список очищает его. При создании серверу нужны `user_id` и `service_roles_id`, хотя исходная схема допускает `None`.
+
+### Permissions
+
+`api.permissions` использует путь `/api/v1/permission` в единственном числе и схемы из `admin_api.api.permissions`.
+
+| Метод | HTTP | Результат |
+|---|---|---|
+| `get_by_filters(filters=None, page=1, size=10, sort_by=None, sort_order="DESC")` | `POST /filters` | `PermissionPaginatedResponse` |
+| `get_by_id(permission_id)` | `GET /{id}` | `PermissionResponse` |
+| `create(permission)` | `POST /` | `PermissionResponse` |
+| `update(permission)` | `PATCH /` | `PermissionResponse` |
+| `delete(permission_id)` | `DELETE /{id}` | `"success"` |
 
 ### MPLK
 

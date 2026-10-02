@@ -72,6 +72,16 @@
 
 `Services`, `ServiceCreate`, `ServiceUpdate`, `ServiceIconUpdate`, `ServiceColorUpdate`, `ServiceGetByFiltersRequest`, `ServiceResponse`, `ServicesPaginatedResponse`.
 
+## Остальные ресурсы Admin API
+
+| Ресурс | Классы и схемы |
+|---|---|
+| `admin_api.api.service_roles` | `ServiceRoles`, запросы и ответы ролей сервиса, назначения permissions |
+| `admin_api.api.units` | `Units`, `UnitGet`, `UnitResponse`, `UnitTreeResponse`, `UnitType`, `ShortUnit` |
+| `admin_api.api.unit_types` | `UnitTypes`, `UnitType` |
+| `admin_api.api.user_service_roles` | `UserServiceRoles`, запросы и ответы назначений, `ScopeItem` |
+| `admin_api.api.permissions` | `Permissions`, запросы и ответы permissions |
+
 ## `admin_api.exceptions`
 
 `AuthException`, `TokenNotProvided`, `InvalidTokenException`, `PermissionDenied`, `ApiError`.
