@@ -62,7 +62,7 @@
 
 ## `admin_api.api.users`
 
-`Users`, `FullUser`, `Scope`, `UserPermissions`.
+`Users`, модели пользователя и аккаунтов, `UserGetByFiltersRequest`, `UsersPaginatedResponse`, `Scope`, `UserPermissions`.
 
 ## `admin_api.exceptions`
 

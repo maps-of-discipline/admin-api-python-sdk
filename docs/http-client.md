@@ -123,23 +123,28 @@ with SyncApi("https://admin.example", token="jwt") as api:
 
 ### Users
 
-`admin_api.api.users.Users`, доступен как `api.users`. Оба метода требуют токен.
+`admin_api.api.users.Users`, доступен как `api.users`. Все методы требуют токен.
 
 | Метод | HTTP | Результат |
 |---|---|---|
 | `get_me()` | `GET /api/v1/users/me` | `FullUser` |
+| `get_by_id(user_id)` | `GET /api/v1/users/{id}` | `FullUser` |
+| `get_by_filters(filters, page=1, size=10, sort_by=None, sort_order="DESC")` | `POST /api/v1/users/filters` | `UsersPaginatedResponse` |
 | `get_permissions(service_name)` | `GET /api/v1/users/permissions` | `UserPermissions` |
 
 ```python
 user = api.send(api.users.get_me())
 permissions = api.send(api.users.get_permissions("cabinet"))
+user_by_id = api.send(api.users.get_by_id(user.id))
 ```
 
 `FullUser` — `FullNaturalUser | FullOrganizationalUser` (поле `kind`).
 `UserPermissions` — `dict[str, list[Scope]]`.
 `Scope` — `UnitScopeResponse` (`type="unit"`, `unit_id`) или `UnitTypeScopeResponse` (`type="unit_type"`, `unit_type_id`).
 
-Модели полей пользователя генерируются из OpenAPI (`admin_api.api.dto`).
+Модели пользователя и permissions определены вручную в `admin_api.api.users.schemas`.
+Для поиска передайте `UserGetByFiltersRequest`, например `UserGetByFiltersRequest(email="user@example.com")`.
+Сейчас сервер применяет только фильтр `email`; остальные поля запроса и параметры сортировки принимаются, но не участвуют в поиске и сортировке.
 
 ### Другие ресурсы
 

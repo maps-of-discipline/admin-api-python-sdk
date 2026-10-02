@@ -1,4 +1,45 @@
 from admin_api.api.users.resource import Users
-from admin_api.api.users.schemas import FullUser, Scope, UserPermissions
+from admin_api.api.users.schemas import (
+    Account,
+    AccountType,
+    FullNaturalUser,
+    FullOrganizationalUser,
+    FullUser,
+    MfaMethod,
+    NaturalUser,
+    OrganizationalUser,
+    Scope,
+    SortOrder,
+    StaffAccount,
+    StudentAccount,
+    UnitScopeResponse,
+    UnitTypeScopeResponse,
+    UserGetByFiltersRequest,
+    UserPermissions,
+    UserSex,
+    UserSortFieldName,
+    UsersPaginatedResponse,
+)
 
-__all__ = ["FullUser", "Scope", "UserPermissions", "Users"]
+__all__ = [
+    "Account",
+    "AccountType",
+    "FullNaturalUser",
+    "FullOrganizationalUser",
+    "FullUser",
+    "MfaMethod",
+    "NaturalUser",
+    "OrganizationalUser",
+    "Scope",
+    "SortOrder",
+    "StaffAccount",
+    "StudentAccount",
+    "UnitScopeResponse",
+    "UnitTypeScopeResponse",
+    "UserGetByFiltersRequest",
+    "UserPermissions",
+    "UserSex",
+    "UserSortFieldName",
+    "Users",
+    "UsersPaginatedResponse",
+]

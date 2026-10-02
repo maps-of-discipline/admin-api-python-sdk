@@ -7,14 +7,21 @@ import pytest
 from pydantic import TypeAdapter
 
 from admin_api import AdminApiAuth, AsyncApi, Operation, SyncApi
-from admin_api.api.dto import FullOrganizationalUser, UnitScopeResponse
 from admin_api.api.users import Users
+from admin_api.api.users.schemas import (
+    FullNaturalUser,
+    FullOrganizationalUser,
+    OrganizationalUser,
+    UnitScopeResponse,
+    UserGetByFiltersRequest,
+)
 from admin_api.exceptions import ApiError, InvalidTokenException, TokenNotProvided
 from tests.support import (
     ME_PAYLOAD,
     PERMISSIONS_PAYLOAD,
     SCOPE_ID,
     UNIT_ID,
+    USER_ID,
     admin_http_handler,
 )
 
@@ -50,6 +57,64 @@ def test_send_get_me_and_permissions():
     assert user.display_name == "Org"
     assert permissions["user.read"] == []
     assert permissions["user.update"][0] == UnitScopeResponse(id=SCOPE_ID, unit_id=UNIT_ID)
+
+
+def test_users_get_by_id_parses_natural_user_and_account():
+    payload = {
+        **ME_PAYLOAD,
+        "kind": "natural",
+        "mplk_individual_guid": None,
+        "name": "Ada",
+        "surname": "Lovelace",
+        "patronymic": None,
+        "sex": "Female",
+        "birthday": "1815-12-10",
+        "phone": None,
+        "photo_url": None,
+        "accounts": [
+            {
+                "id": str(USER_ID),
+                "account_type": "staff",
+                "mplk_user_id": 42,
+                "email_staff": None,
+                "phone_staff": None,
+                "allow_mobphone_in": False,
+                "allow_mobphone_out": True,
+                "positions": [],
+            },
+        ],
+    }
+    del payload["display_name"]
+    del payload["units"]
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == f"/api/v1/users/{USER_ID}"
+        return httpx.Response(200, json=payload)
+
+    with SyncApi("http://admin-api.local", token="tok", transport=httpx.MockTransport(handler)) as api:
+        user = api.send(api.users.get_by_id(USER_ID))
+
+    assert isinstance(user, FullNaturalUser)
+    assert user.accounts[0].account_type == "staff"
+    assert user.birthday is not None and user.birthday.isoformat() == "1815-12-10"
+
+
+def test_users_get_by_filters_sends_body_and_parses_page():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.method == "POST"
+        assert request.url.path == "/api/v1/users/filters"
+        assert request.url.params["page"] == "2"
+        assert request.url.params["size"] == "10"
+        assert request.url.params["sort_order"] == "DESC"
+        assert request.url.params.get("sort_by") is None
+        assert request.read() == b'{"email":"org@example.com"}'
+        return httpx.Response(200, json={"data": [ME_PAYLOAD], "page": 2, "size": 10, "total": 11})
+
+    with SyncApi("http://admin-api.local", token="tok", transport=httpx.MockTransport(handler)) as api:
+        result = api.send(api.users.get_by_filters(UserGetByFiltersRequest(email="org@example.com"), page=2))
+
+    assert result.total == 11
+    assert isinstance(result.data[0], OrganizationalUser)
 
 
 def test_bind_sets_authorization_and_shares_transport():
