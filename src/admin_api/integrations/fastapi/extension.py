@@ -51,6 +51,8 @@ class AdminApiFastAPI(AsyncAdminApiAuth):
         @asynccontextmanager
         async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             try:
+                if self._owns_root_api and self._root_api is not None:
+                    self._root_api._reopen()
                 await self.sync_catalog()
                 async with previous(app):
                     yield

@@ -133,6 +133,10 @@ class AsyncApi(BaseApi):
             transport=cast(httpx.AsyncBaseTransport | None, self._transport),
         )
 
+    def _reopen(self) -> None:
+        if self._http.is_closed:
+            self._http = self._create_client()
+
     async def send(self, operation: Operation[T]) -> T:
         response = await self._http.send(self._prepare(operation))
         try:

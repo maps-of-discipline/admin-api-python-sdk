@@ -93,14 +93,31 @@ def test_fastapi_permission_denied():
     assert response.status_code == 403
 
 
-def test_fastapi_closes_owned_client_after_lifespan():
+def test_fastapi_reopens_owned_client_after_lifespan(monkeypatch):
+    def create_mock_client(api: AsyncApi) -> httpx.AsyncClient:
+        return httpx.AsyncClient(
+            base_url=api._base_url,
+            timeout=api._timeout,
+            transport=httpx.MockTransport(admin_http_handler),
+        )
+
+    monkeypatch.setattr(AsyncApi, "_create_client", create_mock_client)
     integration = AdminApiFastAPI(base_url="http://admin-api.local", service_name="cabinet")
     app = FastAPI()
     integration.init_app(app)
-    with TestClient(app):
-        assert integration._root_api is not None
-        assert not integration._root_api._http.is_closed
-    assert integration._root_api._http.is_closed
+
+    @app.get("/me")
+    async def me(auth: AuthContext = Depends(require("user.read"))):
+        return {"id": str(auth.user.id)}
+
+    for _ in range(2):
+        with TestClient(app) as client:
+            assert integration._root_api is not None
+            assert not integration._root_api._http.is_closed
+            response = client.get("/me", headers={"Authorization": "Bearer tok"})
+            assert response.status_code == 200
+            assert response.json() == {"id": str(USER_ID)}
+        assert integration._root_api._http.is_closed
 
 
 def test_fastapi_permission_argument_forms():
