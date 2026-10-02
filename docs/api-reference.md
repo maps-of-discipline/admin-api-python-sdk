@@ -68,6 +68,10 @@
 
 `Mplk` и модели ответов `MPLKGetGroupsResponse`, `MPLKGetStudentsResponse`, `MPLKGetScheduleResponse`, `MPLKGetSemesterResponse`, `MPLKGetSessionResponse`, `MPLKGetUserInfoResponse`, `MPLKGetStaffResponse`.
 
+## `admin_api.api.services`
+
+`Services`, `ServiceCreate`, `ServiceUpdate`, `ServiceIconUpdate`, `ServiceColorUpdate`, `ServiceGetByFiltersRequest`, `ServiceResponse`, `ServicesPaginatedResponse`.
+
 ## `admin_api.exceptions`
 
 `AuthException`, `TokenNotProvided`, `InvalidTokenException`, `PermissionDenied`, `ApiError`.

@@ -22,7 +22,7 @@ with SyncApi("https://admin.example", token="jwt", timeout=5.0) as api:
 | `timeout` | `float` | `5.0` | таймаут HTTP в секундах |
 | `transport` | транспорт httpx или `None` | `None` | подмена транспорта (тесты, свой HTTP) |
 
-Ресурсы: `api.users`, `api.mplk`.
+Ресурсы: `api.users`, `api.mplk`, `api.services`.
 
 Методы: `send(operation)`, `bind(token)`, `close()`. Поддерживается context manager (`with`).
 
@@ -145,6 +145,29 @@ user_by_id = api.send(api.users.get_by_id(user.id))
 Модели пользователя и permissions определены вручную в `admin_api.api.users.schemas`.
 Для поиска передайте `UserGetByFiltersRequest`, например `UserGetByFiltersRequest(email="user@example.com")`.
 Сейчас сервер применяет только фильтр `email`; остальные поля запроса и параметры сортировки принимаются, но не участвуют в поиске и сортировке.
+
+### Services
+
+`api.services` (`admin_api.api.services.Services`). Все операции требуют токен.
+
+| Метод | HTTP | Результат |
+|---|---|---|
+| `get_by_filters(filters=None, page=1, size=10, sort_by=None, sort_order="DESC")` | `POST /api/v1/services/filters` | `ServicesPaginatedResponse` |
+| `get_by_id(service_id)` | `GET /api/v1/services/{id}` | `ServiceResponse` |
+| `create(service)` | `POST /api/v1/services` | `ServiceResponse` |
+| `update(service)` | `PATCH /api/v1/services` | `ServiceResponse` |
+| `update_icon(service)` | `PATCH /api/v1/services/branding/icon` | `ServiceResponse` |
+| `update_color(service)` | `PATCH /api/v1/services/branding/color` | `ServiceResponse` |
+| `delete(service_id)` | `DELETE /api/v1/services/{id}` | `"success"` |
+
+```python
+from admin_api.api.services import ServiceCreate, ServiceGetByFiltersRequest
+
+services = api.send(api.services.get_by_filters(ServiceGetByFiltersRequest(service_name="cab")))
+created = api.send(api.services.create(ServiceCreate(name="cabinet")))
+```
+
+Схемы запроса проверяют и нормализуют иконку и цвет так же, как Admin API. Для очистки `verbose_name` при обновлении передайте `None`.
 
 ### MPLK
 
