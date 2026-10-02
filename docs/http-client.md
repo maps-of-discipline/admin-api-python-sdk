@@ -146,24 +146,28 @@ user_by_id = api.send(api.users.get_by_id(user.id))
 Для поиска передайте `UserGetByFiltersRequest`, например `UserGetByFiltersRequest(email="user@example.com")`.
 Сейчас сервер применяет только фильтр `email`; остальные поля запроса и параметры сортировки принимаются, но не участвуют в поиске и сортировке.
 
-### Другие ресурсы
+### MPLK
 
-`api.mplk` (`admin_api.api.mplk.Mplk`). Ответы типизированы как `Any`.
+`api.mplk` (`admin_api.api.mplk.Mplk`). Методы чтения возвращают модели с полями ответа Admin API.
+Вложенные данные приходят из внешнего МПЛК и сохраняют исходную структуру.
 
-| Метод | HTTP |
-|---|---|
-| `get_groups(search=None)` | `GET /api/v1/mplk/groups` |
-| `get_students(group, search=None)` | `GET /api/v1/mplk/students` |
-| `get_schedule(group, is_session=False)` | `GET /api/v1/mplk/schedule` |
-| `get_semester()` | `GET /api/v1/mplk/semester` |
-| `get_session()` | `GET /api/v1/mplk/session` |
-| `get_user_info()` | `GET /api/v1/mplk/user-info` |
-| `get_staff(search=None, division=None, page=1, per_page=50)` | `GET /api/v1/mplk/staff` |
-| `generic(data)` | `POST /api/v1/mplk/generic` |
+| Метод | HTTP | Результат |
+|---|---|---|
+| `get_groups(search=None)` | `GET /api/v1/mplk/groups` | `MPLKGetGroupsResponse` |
+| `get_students(group, search=None)` | `GET /api/v1/mplk/students` | `MPLKGetStudentsResponse` |
+| `get_schedule(group, is_session=False)` | `GET /api/v1/mplk/schedule` | `MPLKGetScheduleResponse` |
+| `get_semester()` | `GET /api/v1/mplk/semester` | `MPLKGetSemesterResponse` |
+| `get_session()` | `GET /api/v1/mplk/session` | `MPLKGetSessionResponse` |
+| `get_user_info()` | `GET /api/v1/mplk/user-info` | `MPLKGetUserInfoResponse` |
+| `get_staff(search=None, division=None, page=1, per_page=50)` | `GET /api/v1/mplk/staff` | `MPLKGetStaffResponse` |
+| `generic(data)` | `POST /api/v1/mplk/generic` | произвольный JSON-ответ МПЛК |
 
 ```python
 groups = api.send(api.mplk.get_groups(search="ИВТ"))
+print(groups.groups)
 ```
+
+Для `generic` передавайте тело в формате `{"body": {"method": "GET", "url": "..."}}`.
 
 ---
 

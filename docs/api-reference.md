@@ -64,6 +64,10 @@
 
 `Users`, модели пользователя и аккаунтов, `UserGetByFiltersRequest`, `UsersPaginatedResponse`, `Scope`, `UserPermissions`.
 
+## `admin_api.api.mplk`
+
+`Mplk` и модели ответов `MPLKGetGroupsResponse`, `MPLKGetStudentsResponse`, `MPLKGetScheduleResponse`, `MPLKGetSemesterResponse`, `MPLKGetSessionResponse`, `MPLKGetUserInfoResponse`, `MPLKGetStaffResponse`.
+
 ## `admin_api.exceptions`
 
 `AuthException`, `TokenNotProvided`, `InvalidTokenException`, `PermissionDenied`, `ApiError`.
