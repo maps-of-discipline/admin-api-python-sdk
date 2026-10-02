@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import inspect
+from collections.abc import Collection
 from functools import wraps
 from typing import Any, get_type_hints
 
@@ -11,14 +12,19 @@ from admin_api.auth.context import AuthContext
 from admin_api.integrations.flask.request_auth import _integration, get_request_auth
 
 
-def require(*permissions: str):
+def require(*required: Collection[str] | str | None):
     def decorator(f):
         @wraps(f)
-        def wrapper(*args, **kwargs):
+        def wrapper(*view_args, **kwargs):
             bundle = get_request_auth()
-            _integration().assert_permissions(bundle.context, permissions, request=request)
+            for group in required:
+                _integration().assert_permissions(
+                    bundle.context,
+                    group,
+                    request=request,
+                )
             _inject(f, kwargs, {AuthContext: bundle.context, SyncApi: bundle.api})
-            return f(*args, **kwargs)
+            return f(*view_args, **kwargs)
 
         return wrapper
 

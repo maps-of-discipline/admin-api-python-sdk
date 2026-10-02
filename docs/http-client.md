@@ -63,13 +63,13 @@ with SyncApi("https://admin.example", token="jwt") as api:
 | Параметр | По умолчанию | Назначение |
 |---|---|---|
 | `method` | — | HTTP-метод |
-| `url` | — | путь; подставляется `path_params` через `str.format` |
+| `url` | — | путь; значения `path_params` кодируются как сегменты URL и подставляются в шаблон |
 | `adapter` | — | `pydantic.TypeAdapter` для тела ответа |
 | `auth` | `True` | требовать токен на клиенте |
 | `params` | `None` | query; значения `None` отбрасываются |
 | `json` | `None` | JSON-тело |
 | `headers` | `None` | дополнительные заголовки |
-| `path_params` | `None` | подстановка в URL |
+| `path_params` | `None` | значения сегментов пути; `/` и `?` не меняют структуру URL |
 
 `adapter` нужен и для моделей Pydantic, и для union/словарей (`FullUser`, `UserPermissions`).
 

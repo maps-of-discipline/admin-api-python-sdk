@@ -29,6 +29,8 @@ admin.init_app(app)
 - регистрирует обработчики исключений;
 - при старте приложения синхронизирует каталог прав.
 
+Клиент, созданный через `base_url=`, закрывается при завершении lifespan приложения. При `api=` закрывайте переданный клиент самостоятельно.
+
 Обработчики: `init_app(app, exception_handlers=False)`. Их можно повесить отдельно через `install_exception_handlers(app)`.
 
 Без `init_app` зависимости поднимают `RuntimeError`.
@@ -71,9 +73,9 @@ async def me(auth: AuthContext = Depends(require("user.read"))):
     return {"id": str(auth.user.id)}
 ```
 
-`require(*permissions)` возвращает async-callable. Его передают в `Depends`, а не вызывают как декоратор.
+`require(*args)` возвращает async-callable. Каждый аргумент — строка, коллекция строк или `None`. Отдельные аргументы соединяются по И, элементы одной коллекции — по ИЛИ. Например, `require("user.read", {"user.update", "user.delete"})`. Функцию передают в `Depends`, а не вызывают как декоратор.
 
-Несколько строк — логическое ИЛИ. Пустой `require()` требует только валидный токен и успешную загрузку контекста.
+Пустой `require()` требует только валидный токен и успешную загрузку контекста.
 
 Scoped-валидаторы: `AsyncPermissionBase` / `AsyncPermissionValidator` и `admin.add_permission(...)`. См. [авторизация](authorization.md#scoped-permissions).
 

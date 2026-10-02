@@ -87,6 +87,32 @@ def test_custom_operation():
         assert api.send(ping) == {"ok": True}
 
 
+def test_path_parameters_remain_one_url_segment():
+    seen: list[str] = []
+
+    def handler(http_request: httpx.Request) -> httpx.Response:
+        seen.append(str(http_request.url))
+        return httpx.Response(200, json={})
+
+    with SyncApi("http://admin-api.local", token="tok", transport=httpx.MockTransport(handler)) as api:
+        for value in ("abc?role=admin", "../users/me", "x/other", "..", "a.b"):
+            operation = Operation(
+                "GET",
+                "/api/v1/items/{item_id}",
+                adapter=TypeAdapter(dict),
+                path_params={"item_id": value},
+            )
+            api.send(operation)
+
+    assert seen == [
+        "http://admin-api.local/api/v1/items/abc%3Frole%3Dadmin",
+        "http://admin-api.local/api/v1/items/..%2Fusers%2Fme",
+        "http://admin-api.local/api/v1/items/x%2Fother",
+        "http://admin-api.local/api/v1/items/%2E%2E",
+        "http://admin-api.local/api/v1/items/a.b",
+    ]
+
+
 def test_token_not_provided():
     with _client() as api, pytest.raises(TokenNotProvided):
         api.send(api.users.get_me())
