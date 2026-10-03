@@ -58,8 +58,9 @@ class PermissionVerifier:
     def __init__(self) -> None:
         self._permissions: dict[str, type[PermissionBase]] = {}
 
-    def add_permission(self, permission: type[PermissionBase]) -> None:
+    def add_permission(self, permission: type[PermissionBase]) -> type[PermissionBase]:
         self._permissions[permission.title] = permission
+        return permission
 
     def catalog(self) -> dict[str, str]:
         return {
@@ -87,8 +88,12 @@ class AsyncPermissionVerifier:
     def __init__(self) -> None:
         self._permissions: dict[str, type[AsyncPermissionBase]] = {}
 
-    def add_permission(self, permission: type[AsyncPermissionBase]) -> None:
+    def add_permission(
+        self,
+        permission: type[AsyncPermissionBase],
+    ) -> type[AsyncPermissionBase]:
         self._permissions[permission.title] = permission
+        return permission
 
     def catalog(self) -> dict[str, str]:
         return {
@@ -112,7 +117,11 @@ class AsyncPermissionVerifier:
         return False
 
 
-def apply_middleware_result(context: AuthContext, middleware: object, result: dict | None) -> None:
+def apply_middleware_result(
+    context: AuthContext,
+    middleware: object,
+    result: dict | None,
+) -> None:
     if not result:
         return
     name = getattr(middleware, "__name__", middleware.__class__.__name__)
