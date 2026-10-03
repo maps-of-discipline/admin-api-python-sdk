@@ -89,9 +89,9 @@
 ## `AuthContext`
 
 ```python
-auth.user            # FullUser
-auth.permissions     # dict[str, list[Scope]]
-auth.extras          # dict
+auth.user  # FullUser
+auth.permissions  # dict[str, list[Scope]]
+auth.extras  # dict
 auth.has("user.read")
 auth.scopes("program.manage")
 ```

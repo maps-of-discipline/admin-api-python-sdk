@@ -48,6 +48,7 @@ class CookieTokenParser:
     def get_token(self, request) -> str | None:
         return request.cookies.get("access_token")
 
+
 admin = AdminApiFlask(
     api=api,
     service_name="cabinet",

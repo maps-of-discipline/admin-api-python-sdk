@@ -52,6 +52,7 @@ class CookieTokenParser:
     def get_token(self, request) -> str | None:
         return request.cookies.get("access_token")
 
+
 admin = AdminApiFastAPI(
     api=api,
     service_name="cabinet",
@@ -132,8 +133,7 @@ async def me(
 Локальный пользователь БД приложения:
 
 ```python
-async def get_local_user(bundle: RequestAuth = Depends(get_request_auth)):
-    ...
+async def get_local_user(bundle: RequestAuth = Depends(get_request_auth)): ...
 ```
 
 ## Обработка ошибок

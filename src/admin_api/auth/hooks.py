@@ -11,12 +11,18 @@ AsyncMiddleware: TypeAlias = Callable[[AuthContext], Awaitable[dict | None]]
 
 
 class PermissionValidator(abc.ABC):
+    def __init__(self, permission_cls: type[PermissionBase]) -> None:
+        self.permission = permission_cls
+
     @abc.abstractmethod
     def validate(self, auth: AuthContext, request: object | None = None) -> bool:
         raise NotImplementedError
 
 
 class AsyncPermissionValidator(abc.ABC):
+    def __init__(self, permission_cls: type[AsyncPermissionBase]) -> None:
+        self.permission = permission_cls
+
     @abc.abstractmethod
     async def validate(self, auth: AuthContext, request: object | None = None) -> bool:
         raise NotImplementedError
@@ -25,21 +31,27 @@ class AsyncPermissionValidator(abc.ABC):
 class PermissionBase(abc.ABC):
     title: str
     verbose_name: str | None = None
-    validator: type[PermissionValidator]
+    validators: Collection[type[PermissionValidator]]
 
     @classmethod
     def check(cls, auth: AuthContext, request: object | None = None) -> bool:
-        return cls.validator().validate(auth, request=request)
+        for validator in cls.validators:
+            if not validator(cls).validate(auth, request=request):
+                return False
+        return True
 
 
 class AsyncPermissionBase(abc.ABC):
     title: str
     verbose_name: str | None = None
-    validator: type[AsyncPermissionValidator]
+    validators: Collection[type[AsyncPermissionValidator]]
 
     @classmethod
     async def check(cls, auth: AuthContext, request: object | None = None) -> bool:
-        return await cls.validator().validate(auth, request=request)
+        for validator in cls.validators:
+            if not await validator(cls).validate(auth, request=request):
+                return False
+        return True
 
 
 class PermissionVerifier:

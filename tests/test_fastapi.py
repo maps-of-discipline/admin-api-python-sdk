@@ -164,7 +164,7 @@ class _ProgramInUnit(AsyncPermissionValidator):
 
 class ProgramManage(AsyncPermissionBase):
     title = "user.update"
-    validator = _ProgramInUnit
+    validators = [_ProgramInUnit]
 
 
 def test_fastapi_scoped_permission_uses_request():

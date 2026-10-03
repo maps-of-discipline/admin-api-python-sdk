@@ -63,8 +63,8 @@ Permissions запрашиваются для `service_name` интеграци�
 - значение — список областей действия; пустой список означает, что право есть без ограничения scope.
 
 ```python
-auth.has("user.read")                 # ключ есть в permissions
-auth.scopes("program.manage")         # list[Scope], иначе []
+auth.has("user.read")  # ключ есть в permissions
+auth.scopes("program.manage")  # list[Scope], иначе []
 ```
 
 `Scope` — union:
@@ -110,10 +110,7 @@ from admin_api.auth import AsyncPermissionBase, AsyncPermissionValidator, AuthCo
 class ProgramInUnit(AsyncPermissionValidator):
     async def validate(self, auth: AuthContext, request: object | None = None) -> bool:
         program_id = getattr(request, "path_params", {}).get("program_id")
-        return any(
-            scope.type == "unit" and str(scope.unit_id) == program_id
-            for scope in auth.scopes("program.manage")
-        )
+        return any(scope.type == "unit" and str(scope.unit_id) == program_id for scope in auth.scopes("program.manage"))
 
 
 class ProgramManage(AsyncPermissionBase):

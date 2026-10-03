@@ -33,22 +33,22 @@ class _Reject(PermissionValidator):
 
 class UserRead(PermissionBase):
     title = "user.read"
-    validator = _AllowAll
+    validators = [_AllowAll]
 
 
 class UserUpdate(PermissionBase):
     title = "user.update"
-    validator = _UnitScoped
+    validators = [_UnitScoped]
 
 
 class RejectedUserUpdate(PermissionBase):
     title = "user.update"
-    validator = _Reject
+    validators = [_Reject]
 
 
 class MissingPermission(PermissionBase):
     title = "missing.perm"
-    validator = _AllowAll
+    validators = [_AllowAll]
 
 
 def test_sync_load_and_require():
@@ -258,12 +258,12 @@ class _AsyncReject(AsyncPermissionValidator):
 
 class AsyncUserRead(AsyncPermissionBase):
     title = "user.read"
-    validator = _AsyncAllow
+    validators = [_AsyncAllow]
 
 
 class AsyncRejectedUserUpdate(AsyncPermissionBase):
     title = "user.update"
-    validator = _AsyncReject
+    validators = [_AsyncReject]
 
 
 def test_async_load():
